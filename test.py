@@ -7,6 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
+from covid import check_uth
+
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--no-sandbox')
@@ -42,6 +44,10 @@ def test_alamo_new(driver):
     print(outcome)
     print(element.text)
 
+def test_uth(driver):
+    outcome = check_uth(driver)
+    print(outcome)
+
 def test_kinney(driver):
     try:
         driver.get("https://secure.kinneydrugs.com/pharmacy/covid-19/vaccination-scheduling/ny/")
@@ -66,5 +72,11 @@ def test_nys(driver):
         print(e)
 
 if __name__ == "__main__":
-    test_alamo_new(driver)    
-driver.quit()
+    try:
+        test_uth(driver)
+    except Exception as e:
+        print(e)
+        driver.quit()
+        raise
+if driver:
+    driver.quit()

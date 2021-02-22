@@ -16,6 +16,7 @@ from config import numbers
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--alamo', action='store_true')
+parser.add_argument('--uth', action='store_true')
 parser.add_argument('--heb', action='store_true')
 parser.add_argument('--kinney', action='store_true')
 parser.add_argument('--nys', action='store_true')
@@ -26,6 +27,7 @@ site_alamo = "https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.
 site_alamo_new = "https://covid19.sanantonio.gov/Services/Vaccination-for-COVID-19"
 site_kinney = "https://secure.kinneydrugs.com/pharmacy/covid-19/vaccination-scheduling/ny/"
 site_nys = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=50501047"
+site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
 
 
 def get_driver():
@@ -65,6 +67,14 @@ def check_alamo_new(driver):
     outcome = text in element.text
     return outcome
 
+def check_uth(driver):
+    driver.get(site_uth)
+    text = "At this time, based off the amount of vaccine shipped to UTHealth, our COVID-19 registry is full."
+    time.sleep(3)
+    element = driver.find_element(By.TAG_NAME, "body")
+    outcome = text in element.text
+    return outcome
+
 def check_request(*args):
     response = requests.get(URL)
     if response.status_code == 404:
@@ -93,50 +103,55 @@ def check_nys(driver):
 def check_heb(driver):
     page = "https://vaccine.heb.com/"
 
-args = parser.parse_args()
-if args.alamo:
-    check_func = check_alamo_new
-    site = site_alamo_new
-    driver = get_driver()
-elif args.kinney:
-    check_func = check_kinney
-    site = site_kinney
-    driver = get_driver()
-elif args.nys:
-    check_func = check_nys
-    site = site_nys
-    driver = get_driver()
-else:
-    check_func = check_request
-    site = site_alamo
-    driver = None
-try:
-    while True:
-        try:
-            outcome = check_func(driver)
-            if not outcome:
-                # Detected change in registration status
-                print("Sending alerts, {}...".format(datetime.datetime.now()))
-                message = "Possible change in vaccine registration availability. Check {}".format(site)
-                for cell in [numbers['me']]:
-                    send_sms(cell, message)
-                break
-                time.sleep(300)
-            else:
-                time.sleep(50 + uniform(0, 5))
-        except requests.exceptions.RequestException as e:
-            print(type(e), e)
-            print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
-            time.sleep(120)
-except KeyboardInterrupt:
-    print("\rInterrupted, {}...".format(datetime.datetime.now()))
-    # send_sms(numbers['me'], "Process interrupted.")
-except Exception as e:
-    print(type(e), e)
-    print("Error occurred, {}".format(datetime.datetime.now()))
-    send_sms(numbers['me'], "Error occurred.")
+if __name__ == "__main__":
+    args = parser.parse_args()
+    if args.alamo:
+        check_func = check_alamo_new
+        site = site_alamo_new
+        driver = get_driver()
+    elif args.uth:
+        check_func = check_uth
+        site = site_uth
+        driver = get_driver()
+    elif args.kinney:
+        check_func = check_kinney
+        site = site_kinney
+        driver = get_driver()
+    elif args.nys:
+        check_func = check_nys
+        site = site_nys
+        driver = get_driver()
+    else:
+        check_func = check_request
+        site = site_alamo
+        driver = None
+    try:
+        while True:
+            try:
+                outcome = check_func(driver)
+                if not outcome:
+                    # Detected change in registration status
+                    print("Sending alerts, {}...".format(datetime.datetime.now()))
+                    message = "Possible change in vaccine registration availability. Check {}".format(site)
+                    for cell in [numbers['me']]:
+                        send_sms(cell, message)
+                    break
+                    time.sleep(300)
+                else:
+                    time.sleep(50 + uniform(0, 5))
+            except requests.exceptions.RequestException as e:
+                print(type(e), e)
+                print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
+                time.sleep(120)
+    except KeyboardInterrupt:
+        print("\rInterrupted, {}...".format(datetime.datetime.now()))
+        # send_sms(numbers['me'], "Process interrupted.")
+    except Exception as e:
+        print(type(e), e)
+        print("Error occurred, {}".format(datetime.datetime.now()))
+        send_sms(numbers['me'], "Error occurred.")
+        if driver:
+            driver.quit()
+        raise
     if driver:
         driver.quit()
-    raise
-if driver:
-    driver.quit()
