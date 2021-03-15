@@ -1,5 +1,8 @@
 import time
 import datetime
+import requests
+from bs4 import BeautifulSoup
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
@@ -8,17 +11,21 @@ from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
 from covid import check_uth
+from covid import check_cvs
 
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--no-sandbox')
-options.add_argument('--disable-dev-shm-usage')
-options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
-driver = webdriver.Chrome(options=options)
-# driver = webdriver.Firefox(options=options)
+def get_driver():
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
+    driver = webdriver.Chrome(options=options)
+    # driver = webdriver.Firefox(options=options)
+    return driver
 
 def test_alamo(driver):
-    driver.get("https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.jsp")
+    url = "https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.jsp"
+    driver.get(url)
     threshold = datetime.datetime(2021, 1, 17, 22, 39, 00)
     while True:
         if datetime.datetime.now() >= threshold:
@@ -35,8 +42,8 @@ def test_alamo(driver):
         print(type(e), e)
 
 def test_alamo_new(driver):
-    site_alamo_new = "https://covid19.sanantonio.gov/Services/Vaccination-for-COVID-19"
-    driver.get(site_alamo_new)
+    url = "https://covid19.sanantonio.gov/Services/Vaccination-for-COVID-19"
+    driver.get(url)
     text = "Due to limited quantity, vaccine registration is temporarily unavailable."
     time.sleep(3)
     element = driver.find_element(By.TAG_NAME, "body")
@@ -50,7 +57,8 @@ def test_uth(driver):
 
 def test_kinney(driver):
     try:
-        driver.get("https://secure.kinneydrugs.com/pharmacy/covid-19/vaccination-scheduling/ny/")
+        url = "https://secure.kinneydrugs.com/pharmacy/covid-19/vaccination-scheduling/ny/"
+        driver.get(url)
         time.sleep(1)
         element = driver.find_element(By.TAG_NAME, "body")
         text = "all appointments in New York are BOOKED"
@@ -62,7 +70,8 @@ def test_kinney(driver):
 
 def test_nys(driver):
     try:
-        driver.get("https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=50501047")
+        url = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=50501047"
+        driver.get(url)
         time.sleep(2)
         text = "No Appointments Available"
         element = driver.find_element(By.ID, "notfound")
@@ -71,12 +80,18 @@ def test_nys(driver):
     except Exception as e:
         print(e)
 
+def test_cvs():
+    print(check_cvs('South Boston', 'VA')())
+
 if __name__ == "__main__":
+    driver = None
+    print("locals:", locals())
     try:
-        test_uth(driver)
+        # driver = get_driver()
+        test_cvs()
     except Exception as e:
         print(e)
-        driver.quit()
+        # driver.quit()
         raise
 if driver:
     driver.quit()
