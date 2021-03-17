@@ -92,6 +92,7 @@ def check_alamo_new(driver):
 
 def check_uth(driver):
     driver.get(site_uth)
+    time.sleep(3)
     element = driver.find_element(By.TAG_NAME, "body")
     text = "Sign-up is currently closed"
     outcome = text in element.text
