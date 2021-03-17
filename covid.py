@@ -31,8 +31,23 @@ site_alamo = "https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.
 site_alamo_new = "https://covid19.sanantonio.gov/Services/Vaccination-for-COVID-19"
 site_kinney = "https://secure.kinneydrugs.com/pharmacy/covid-19/vaccination-scheduling/ny/"
 site_nys = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=50501047"
-site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
+# site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
+site_uth = "https://schedule.utmedicinesa.com/identity/account/register"
 site_cvs = "https://www.cvs.com/immunizations/covid-19-vaccine?icid=cvs-home-hero1-link2-coronavirus-vaccine"
+
+def get_driver():
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
+    driver = webdriver.Chrome(options=options)
+    # driver = webdriver.Firefox(firefox_options=options)
+    # options = webdriver.FirefoxOptions().set_headless()
+    # driver = webdriver.Firefox(firefox_options=options)
+    # driver.get("http://www.python.org")
+    # print("The title is {}!".format(driver.title))
+    return driver
 
 def get_cvs_data(state='MA'):
     site_cvs_json = "https://www.cvs.com/immunizations/covid-19-vaccine.vaccine-status.json?vaccineinfo"
@@ -51,20 +66,6 @@ def get_cvs_data(state='MA'):
     d = d['responsePayloadData']['data'][state]
     d = {x['city']: x['status'] for x in d}
     return d
-
-def get_driver():
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
-    driver = webdriver.Chrome(options=options)
-    # driver = webdriver.Firefox(firefox_options=options)
-    # options = webdriver.FirefoxOptions().set_headless()
-    # driver = webdriver.Firefox(firefox_options=options)
-    # driver.get("http://www.python.org")
-    # print("The title is {}!".format(driver.title))
-    return driver
 
 def check_alamo(driver):
     driver.get(site_alamo)
@@ -90,6 +91,13 @@ def check_alamo_new(driver):
     return outcome
 
 def check_uth(driver):
+    driver.get(site_uth)
+    element = driver.find_element(By.TAG_NAME, "body")
+    text = "Sign-up is currently closed"
+    outcome = text in element.text
+    return outcome
+
+def check_uth_old(driver):
     driver.get(site_uth)
     text = "At this time, based off the amount of vaccine shipped to UTHealth, our COVID-19 registry is full."
     time.sleep(3)
@@ -180,6 +188,7 @@ if __name__ == "__main__":
                     print("Sending alerts, {}...".format(datetime.datetime.now()))
                     message = "Possible change in vaccine registration availability. Check {}".format(site)
                     for cell in numbers:
+                        print(message)
                         send_sms(cell, message)
                     break
                     time.sleep(300)
@@ -191,7 +200,7 @@ if __name__ == "__main__":
                 time.sleep(120)
     except KeyboardInterrupt:
         print("\rInterrupted, {}...".format(datetime.datetime.now()))
-        # send_sms(numbers, "Process interrupted.")
+        # send_sms(me, "Process interrupted.")
     except Exception as e:
         print(type(e), e)
         print("Error occurred, {}".format(datetime.datetime.now()))

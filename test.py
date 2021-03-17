@@ -85,13 +85,14 @@ def test_cvs():
 
 if __name__ == "__main__":
     driver = None
-    print("locals:", locals())
     try:
-        # driver = get_driver()
-        test_cvs()
+        driver = get_driver()
+        test_uth(driver)
+        # test_cvs()
     except Exception as e:
         print(e)
-        # driver.quit()
+        if driver:
+            driver.quit()
         raise
 if driver:
     driver.quit()
