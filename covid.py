@@ -191,6 +191,8 @@ if __name__ == "__main__":
                     for cell in numbers:
                         print(message)
                         send_sms(cell, message)
+                        if driver:
+                            print(driver.page_source)
                     break
                     time.sleep(300)
                 else:
