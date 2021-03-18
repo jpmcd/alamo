@@ -14,6 +14,7 @@ from random import uniform
 
 from sms import send_sms
 from config import contacts
+# from config import info
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--alamo', action='store_true')
@@ -96,6 +97,12 @@ def check_uth(driver):
     element = driver.find_element(By.TAG_NAME, "body")
     text = "Sign-up is currently closed"
     outcome = text in element.text
+    # if not outcome:
+    #     driver.find_element(By.ID, "Input_FullName").send_keys(info['name'])
+    #     driver.find_element(By.ID, "Input_PhoneNumber").send_keys(info['phone'])
+    #     driver.find_element(By.ID, "Input_Email").send_keys(info['email'])
+    #     driver.find_element(By.ID, "Input_Password").send_keys(info['pass'])
+    #     driver.find_element(By.ID, "Input_ConfirmPassword").send_keys(info['pass'])
     return outcome
 
 def check_uth_old(driver):
