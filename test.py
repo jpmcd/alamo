@@ -81,14 +81,14 @@ def test_nys(driver):
         print(e)
 
 def test_cvs():
-    print(check_cvs('South Boston', 'VA')())
+    print(check_cvs('east boston', 'ma')())
 
 if __name__ == "__main__":
     driver = None
     try:
-        driver = get_driver()
-        test_uth(driver)
-        # test_cvs()
+        # driver = get_driver()
+        # test_uth(driver)
+        test_cvs()
     except Exception as e:
         print(e)
         if driver:

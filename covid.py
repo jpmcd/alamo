@@ -97,12 +97,13 @@ def check_uth(driver):
     element = driver.find_element(By.TAG_NAME, "body")
     text = "Sign-up is currently closed"
     outcome = text in element.text
-    # if not outcome:
-    #     driver.find_element(By.ID, "Input_FullName").send_keys(info['name'])
-    #     driver.find_element(By.ID, "Input_PhoneNumber").send_keys(info['phone'])
-    #     driver.find_element(By.ID, "Input_Email").send_keys(info['email'])
-    #     driver.find_element(By.ID, "Input_Password").send_keys(info['pass'])
-    #     driver.find_element(By.ID, "Input_ConfirmPassword").send_keys(info['pass'])
+    if not outcome:
+        driver.find_element(By.ID, "Input_FullName").send_keys(info['name'])
+        driver.find_element(By.ID, "Input_PhoneNumber").send_keys(info['phone'])
+        driver.find_element(By.ID, "Input_Email").send_keys(info['email'])
+        driver.find_element(By.ID, "Input_Password").send_keys(info['pass'])
+        driver.find_element(By.ID, "Input_ConfirmPassword").send_keys(info['pass'])
+        driver.find_element(By.CLASS_NAME, "btn btn-primary").click()
     return outcome
 
 def check_uth_old(driver):
@@ -179,11 +180,12 @@ if __name__ == "__main__":
         site = site_nys
         driver = get_driver()
     elif bool(args.city) or bool(args.state):
+        print("Checking cities: {}, state: {}".format(args.city, args.state))
         if bool(args.city) != bool(args.state):
             parser.error("Missing city or state, please supply both")
         check_func = check_cvs(args.city, args.state)
         # site = site_cvs
-        site = ', '.join([site_cvs, ' '.join(args.city), args.state])
+        site = ' , '.join([site_cvs, args.state, ' '.join(args.city)])
     else:
         check_func = check_request
         site = site_alamo
@@ -203,7 +205,7 @@ if __name__ == "__main__":
                     break
                     time.sleep(300)
                 else:
-                    time.sleep(50 + uniform(0, 5))
+                    time.sleep(25 + uniform(0, 5))
             except requests.exceptions.RequestException as e:
                 print(type(e), e)
                 print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
