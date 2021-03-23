@@ -17,11 +17,13 @@ from config import contacts
 from config import info
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--no-sms', action='store_true', help='Turn off SMS alerts')
 parser.add_argument('--alamo', action='store_true')
 parser.add_argument('--uth', action='store_true')
 parser.add_argument('--heb', action='store_true')
 parser.add_argument('--kinney', action='store_true')
 parser.add_argument('--nys', action='store_true')
+parser.add_argument('--walg', type=str)
 parser.add_argument('--city', nargs='+')
 parser.add_argument('--state')
 parser.add_argument('--rec')
@@ -35,6 +37,10 @@ site_nys = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=505
 # site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
 site_uth = "https://schedule.utmedicinesa.com/identity/account/register"
 site_cvs = "https://www.cvs.com/immunizations/covid-19-vaccine?icid=cvs-home-hero1-link2-coronavirus-vaccine"
+site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19/location-screening"
+
+def void(*args):
+    pass
 
 def get_driver():
     options = Options()
@@ -98,6 +104,7 @@ def check_uth(driver):
     text = "Sign-up is currently closed"
     outcome = text in element.text
     if not outcome:
+        print(element.text)
         driver.find_element(By.ID, "Input_FullName").send_keys(info['name'])
         driver.find_element(By.ID, "Input_PhoneNumber").send_keys(info['phone'])
         driver.find_element(By.ID, "Input_Email").send_keys(info['email'])
@@ -126,6 +133,19 @@ def check_cvs(city, state):
                 outcome = False
         return outcome
     return f
+
+def check_walg(driver, zipcode):
+    driver.get(site_walg)
+    time.sleep(3)
+    element = driver.find_element(By.ID, "inputLocation")
+    element.send_keys(zipcode)
+    element.send_keys(Keys.ENTER)
+    time.sleep(1)
+    try:
+        element = driver.find_element(By.CLASS_NAME, "alert alert__red mt25")
+        print(element.text)
+    except Exception as e:
+        print(type(e), e)
 
 def check_request(*args):
     response = requests.get(URL)
@@ -158,9 +178,11 @@ def check_heb(driver):
 if __name__ == "__main__":
     driver = None
     message = None
-    args = parser.parse_args()
     me = contacts['me']
     numbers = [me]
+    args = parser.parse_args()
+    if args.no_sms:
+        send_sms = void
     if args.rec:
         numbers.append(contacts[args.rec])
     if args.alamo:
@@ -191,28 +213,26 @@ if __name__ == "__main__":
         site = site_alamo
     try:
         while True:
-            try:
-                outcome = check_func(driver)
-                if not outcome:
-                    # Detected change in registration status
-                    print("Sending alerts, {}...".format(datetime.datetime.now()))
-                    message = "Possible change in vaccine registration availability. Check {}".format(site)
-                    for cell in numbers:
-                        print(message)
-                        send_sms(cell, message)
-                        # if driver:
-                        #     print(driver.page_source)
-                    break
-                    time.sleep(300)
-                else:
-                    time.sleep(25 + uniform(0, 5))
-            except requests.exceptions.RequestException as e:
-                print(type(e), e)
-                print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
-                time.sleep(120)
+            outcome = check_func(driver)
+            if not outcome:
+                # Detected change in registration status
+                print("Sending alerts, {}...".format(datetime.datetime.now()))
+                message = "Possible change in vaccine registration availability. Check {}".format(site)
+                for cell in numbers:
+                    print(message)
+                    send_sms(cell, message)
+                    # if driver:
+                    #     print(driver.page_source)
+                break
+                time.sleep(300)
+            else:
+                time.sleep(25 + uniform(0, 5))
+            # except requests.exceptions.RequestException as e:
+            #     print(type(e), e)
+            #     print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
+            #     time.sleep(120)
     except KeyboardInterrupt:
         print("\rInterrupted, {}...".format(datetime.datetime.now()))
-        # send_sms(me, "Process interrupted.")
     except Exception as e:
         print(type(e), e)
         print("Error occurred, {}".format(datetime.datetime.now()))

@@ -10,8 +10,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 
-from covid import check_uth
-from covid import check_cvs
+from covid import check_uth, check_cvs, check_walg
 
 def get_driver():
     options = Options()
@@ -83,12 +82,16 @@ def test_nys(driver):
 def test_cvs():
     print(check_cvs('east boston', 'ma')())
 
+def test_walg(driver):
+    check_walg(driver, '02144')
+
 if __name__ == "__main__":
     driver = None
     try:
-        # driver = get_driver()
+        driver = get_driver()
         # test_uth(driver)
-        test_cvs()
+        # test_cvs()
+        test_walg(driver)
     except Exception as e:
         print(e)
         if driver:
