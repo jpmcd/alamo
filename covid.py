@@ -18,6 +18,7 @@ from config import info
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--no-sms', action='store_true', help='Turn off SMS alerts')
+parser.add_argument('--head', action='store_true', help='Use headed browsing with Firefox')
 parser.add_argument('--alamo', action='store_true')
 parser.add_argument('--uth', action='store_true')
 parser.add_argument('--heb', action='store_true')
@@ -42,18 +43,18 @@ site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19/location-sc
 def void(*args):
     pass
 
-def get_driver():
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
-    driver = webdriver.Chrome(options=options)
-    # driver = webdriver.Firefox(firefox_options=options)
-    # options = webdriver.FirefoxOptions().set_headless()
-    # driver = webdriver.Firefox(firefox_options=options)
-    # driver.get("http://www.python.org")
-    # print("The title is {}!".format(driver.title))
+def get_driver(head=False):
+    if head:
+        # options = webdriver.FirefoxOptions().set_headless()
+        # driver = webdriver.Firefox(firefox_options=options)
+        driver = webdriver.Firefox()
+    else:
+        options = Options()
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
+        driver = webdriver.Chrome(options=options)
     return driver
 
 def get_cvs_data(state='MA'):
@@ -181,37 +182,37 @@ if __name__ == "__main__":
     me = contacts['me']
     numbers = [me]
     args = parser.parse_args()
-    if args.no_sms:
-        send_sms = void
-    if args.rec:
-        numbers.append(contacts[args.rec])
-    if args.alamo:
-        check_func = check_alamo_new
-        site = site_alamo_new
-        driver = get_driver()
-    elif args.uth:
-        check_func = check_uth
-        site = site_uth
-        driver = get_driver()
-    elif args.kinney:
-        check_func = check_kinney
-        site = site_kinney
-        driver = get_driver()
-    elif args.nys:
-        check_func = check_nys
-        site = site_nys
-        driver = get_driver()
-    elif bool(args.city) or bool(args.state):
-        print("Checking cities: {}, state: {}".format(args.city, args.state))
-        if bool(args.city) != bool(args.state):
-            parser.error("Missing city or state, please supply both")
-        check_func = check_cvs(args.city, args.state)
-        # site = site_cvs
-        site = ' , '.join([site_cvs, args.state, ' '.join(args.city)])
-    else:
-        check_func = check_request
-        site = site_alamo
     try:
+        if args.no_sms:
+            send_sms = void
+        if args.rec:
+            numbers.append(contacts[args.rec])
+        if args.alamo:
+            check_func = check_alamo_new
+            site = site_alamo_new
+            driver = get_driver(head=args.head)
+        elif args.uth:
+            check_func = check_uth
+            site = site_uth
+            driver = get_driver(head=args.head)
+        elif args.kinney:
+            check_func = check_kinney
+            site = site_kinney
+            driver = get_driver(head=args.head)
+        elif args.nys:
+            check_func = check_nys
+            site = site_nys
+            driver = get_driver(head=args.head)
+        elif bool(args.city) or bool(args.state):
+            print("Checking cities: {}, state: {}".format(args.city, args.state))
+            if bool(args.city) != bool(args.state):
+                parser.error("Missing city or state, please supply both")
+            check_func = check_cvs(args.city, args.state)
+            # site = site_cvs
+            site = ' , '.join([site_cvs, args.state, ' '.join(args.city)])
+        else:
+            check_func = check_request
+            site = site_alamo
         while True:
             outcome = check_func(driver)
             if not outcome:
