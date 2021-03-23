@@ -228,10 +228,6 @@ if __name__ == "__main__":
                 time.sleep(300)
             else:
                 time.sleep(25 + uniform(0, 5))
-            # except requests.exceptions.RequestException as e:
-            #     print(type(e), e)
-            #     print("Pausing... Error occurred, {}".format(datetime.datetime.now()))
-            #     time.sleep(120)
     except KeyboardInterrupt:
         print("\rInterrupted, {}...".format(datetime.datetime.now()))
     except Exception as e:
