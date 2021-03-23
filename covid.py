@@ -14,7 +14,7 @@ from random import uniform
 
 from sms import send_sms
 from config import contacts
-# from config import info
+from config import info
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--alamo', action='store_true')
