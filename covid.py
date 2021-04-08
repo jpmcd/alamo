@@ -132,6 +132,7 @@ def check_cvs(city, state):
         for c in cities:
             if data[c.upper()] != 'Fully Booked':
                 outcome = False
+                print("{}: {}".format(c, data[c.upper()]))
         return outcome
     return f
 
