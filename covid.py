@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-# from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.options import Options as firefox_options
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
 import time
@@ -24,6 +24,7 @@ parser.add_argument('--uth', action='store_true')
 parser.add_argument('--heb', action='store_true')
 parser.add_argument('--kinney', action='store_true')
 parser.add_argument('--nys', action='store_true')
+parser.add_argument('--fpg', action='store_true')
 parser.add_argument('--walg', type=str)
 parser.add_argument('--city', nargs='+')
 parser.add_argument('--state')
@@ -38,7 +39,9 @@ site_nys = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=505
 # site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
 site_uth = "https://schedule.utmedicinesa.com/identity/account/register"
 site_cvs = "https://www.cvs.com/immunizations/covid-19-vaccine?icid=cvs-home-hero1-link2-coronavirus-vaccine"
-site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19/location-screening"
+# site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19/location-screening"
+site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19?ban=covid_vaccine_landing_schedule"
+site_fpg = "https://bookfpg.timetap.com/"
 
 def void(*args):
     pass
@@ -47,7 +50,12 @@ def get_driver(head=False):
     if head:
         # options = webdriver.FirefoxOptions().set_headless()
         # driver = webdriver.Firefox(firefox_options=options)
-        driver = webdriver.Firefox()
+        options = firefox_options()
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
+        driver = webdriver.Firefox(options=options)
+        # driver = webdriver.Firefox()
     else:
         options = Options()
         options.add_argument('--headless')
@@ -138,16 +146,34 @@ def check_cvs(city, state):
 
 def check_walg(driver, zipcode):
     driver.get(site_walg)
+    time.sleep(2)
+    driver.find_element(By.CLASS_NAME, "btn.btn__blue").click()
     time.sleep(3)
     element = driver.find_element(By.ID, "inputLocation")
+    element.clear()
     element.send_keys(zipcode)
     element.send_keys(Keys.ENTER)
-    time.sleep(1)
+    driver.find_element(By.CLASS_NAME, "btn").click()
+    time.sleep(2)
     try:
-        element = driver.find_element(By.CLASS_NAME, "alert alert__red mt25")
+        element = driver.find_element(By.CLASS_NAME, "alert.alert__red mt25")
         print(element.text)
     except Exception as e:
         print(type(e), e)
+
+def check_fpg(driver):
+    text = "All appointment times are currently reserved."
+    driver.get(site_fpg)
+    time.sleep(4)
+    driver.find_element(By.CSS_SELECTOR, "#nextBtn > .mat-button-wrapper").click()
+    time.sleep(1)
+    driver.find_element(By.CSS_SELECTOR, "#nextBtn > .mat-button-wrapper").click()
+    time.sleep(1)
+    driver.find_element(By.ID, "screeningQuestionPassBtn").click()
+    time.sleep(4)
+    element = driver.find_element(By.ID, "schedulerBox")
+    outcome = text in element.text
+    return outcome
 
 def check_request(*args):
     response = requests.get(URL)
@@ -204,6 +230,10 @@ if __name__ == "__main__":
             check_func = check_nys
             site = site_nys
             driver = get_driver(head=args.head)
+        elif args.fpg:
+            check_func = check_fpg
+            site = site_fpg
+            driver = get_driver(head=args.head)
         elif bool(args.city) or bool(args.state):
             print("Checking cities: {}, state: {}".format(args.city, args.state))
             if bool(args.city) != bool(args.state):
@@ -239,4 +269,5 @@ if __name__ == "__main__":
             driver.quit()
         raise
     if driver:
+        print("Exiting normally...")
         driver.quit()

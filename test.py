@@ -9,18 +9,9 @@ from selenium.webdriver.common.by import By
 # from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
+from covid import check_uth, check_cvs, check_walg, check_fpg
+from covid import get_driver
 
-from covid import check_uth, check_cvs, check_walg
-
-def get_driver():
-    options = Options()
-    options.add_argument('--headless')
-    options.add_argument('--no-sandbox')
-    options.add_argument('--disable-dev-shm-usage')
-    options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
-    driver = webdriver.Chrome(options=options)
-    # driver = webdriver.Firefox(options=options)
-    return driver
 
 def test_alamo(driver):
     url = "https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.jsp"
@@ -85,13 +76,15 @@ def test_cvs():
 def test_walg(driver):
     check_walg(driver, '02144')
 
+def test_fpg(driver):
+    print(check_fpg(driver))
+
 if __name__ == "__main__":
     driver = None
     try:
-        driver = get_driver()
-        # test_uth(driver)
+        driver = get_driver(head=False)
         # test_cvs()
-        test_walg(driver)
+        test_fpg(driver)
     except Exception as e:
         print(e)
         if driver:
