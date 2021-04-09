@@ -19,6 +19,7 @@ from config import info
 parser = argparse.ArgumentParser()
 parser.add_argument('--no-sms', action='store_true', help='Turn off SMS alerts')
 parser.add_argument('--head', action='store_true', help='Use headed browsing with Firefox')
+parser.add_argument('--wait', type=float, default=25, help='Wait time between checks')
 parser.add_argument('--alamo', action='store_true')
 parser.add_argument('--uth', action='store_true')
 parser.add_argument('--heb', action='store_true')
@@ -164,13 +165,13 @@ def check_walg(driver, zipcode):
 def check_fpg(driver):
     text = "All appointment times are currently reserved."
     driver.get(site_fpg)
-    time.sleep(4)
+    time.sleep(5)
     driver.find_element(By.CSS_SELECTOR, "#nextBtn > .mat-button-wrapper").click()
     time.sleep(1)
     driver.find_element(By.CSS_SELECTOR, "#nextBtn > .mat-button-wrapper").click()
     time.sleep(1)
     driver.find_element(By.ID, "screeningQuestionPassBtn").click()
-    time.sleep(4)
+    time.sleep(5)
     element = driver.find_element(By.ID, "schedulerBox")
     outcome = text in element.text
     return outcome
@@ -258,7 +259,7 @@ if __name__ == "__main__":
                 break
                 time.sleep(300)
             else:
-                time.sleep(25 + uniform(0, 5))
+                time.sleep(args.wait + uniform(0, 5))
     except KeyboardInterrupt:
         print("\rInterrupted, {}...".format(datetime.datetime.now()))
     except Exception as e:
