@@ -9,7 +9,7 @@ from selenium.webdriver.common.by import By
 # from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
-from covid import check_uth, check_cvs, check_walg, check_fpg
+from covid import check_uth, check_cvs, check_cvs_book, check_walg, check_fpg, check_bmc
 from covid import get_driver
 
 
@@ -73,18 +73,25 @@ def test_nys(driver):
 def test_cvs():
     print(check_cvs('east boston', 'ma')())
 
+def test_cvs_book(driver):
+    print(check_cvs_book(driver))
+
 def test_walg(driver):
     check_walg(driver, '02144')
 
 def test_fpg(driver):
     print(check_fpg(driver))
 
+def test_bmc(driver):
+    check_bmc(driver)
+
 if __name__ == "__main__":
     driver = None
     try:
-        driver = get_driver(head=False)
+        driver = get_driver(head=True)
         # test_cvs()
-        test_fpg(driver)
+        # test_bmc(driver)
+        test_cvs_book(driver)
     except Exception as e:
         print(e)
         if driver:

@@ -26,6 +26,7 @@ parser.add_argument('--heb', action='store_true')
 parser.add_argument('--kinney', action='store_true')
 parser.add_argument('--nys', action='store_true')
 parser.add_argument('--fpg', action='store_true')
+parser.add_argument('--book', action='store_true')
 parser.add_argument('--walg', type=str)
 parser.add_argument('--city', nargs='+')
 parser.add_argument('--state')
@@ -40,9 +41,11 @@ site_nys = "https://apps3.health.ny.gov/doh2/applinks/cdmspr/2/counties?OpID=505
 # site_uth = "https://uthealth.qualtrics.com/jfe/form/SV_9AkzYKyGfVMP9k2"
 site_uth = "https://schedule.utmedicinesa.com/identity/account/register"
 site_cvs = "https://www.cvs.com/immunizations/covid-19-vaccine?icid=cvs-home-hero1-link2-coronavirus-vaccine"
+site_cvs_book = "https://www.cvs.com/vaccine/intake/store/cvd-schedule?icid=coronavirus-lp-vaccine-sd-statetool"
 # site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19/location-screening"
 site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19?ban=covid_vaccine_landing_schedule"
 site_fpg = "https://bookfpg.timetap.com/"
+site_bmc = "https://mychartscheduling.bmc.org/MyChartscheduling/covid19#/triage"
 
 def void(*args):
     pass
@@ -145,6 +148,14 @@ def check_cvs(city, state):
         return outcome
     return f
 
+def check_cvs_book(driver):
+    driver.get(site_cvs_book)
+    time.sleep(2)
+    element = driver.find_element(By.TAG_NAME, "body")
+    text = "We are adding more appointments for you."
+    outcome = text in element.text
+    return outcome
+
 def check_walg(driver, zipcode):
     driver.get(site_walg)
     time.sleep(2)
@@ -175,6 +186,24 @@ def check_fpg(driver):
     element = driver.find_element(By.ID, "schedulerBox")
     outcome = text in element.text
     return outcome
+
+def check_bmc(driver):
+    driver.get(site_bmc)
+    # driver.find_element(By.LINK_TEXT, "Click here to continue").click()
+    driver.find_element(By.CSS_SELECTOR, ".answer-label:nth-child(2)").click()
+    driver.find_element(By.LINK_TEXT, "Next Question").click()
+    driver.find_element(By.CSS_SELECTOR, ".answer-label:nth-child(2)").click()
+    driver.find_element(By.LINK_TEXT, "Next Question").click()
+    driver.find_element(By.CSS_SELECTOR, ".location-card-content > div").click()
+    time.sleep(5)
+    # element = driver.find_element(By.ID, "main")
+    # element = driver.find_element(By.CLASS_NAME, "errormessage")
+    # element = driver.find_element(By.TAG_NAME, "body")
+    # element = driver.find_element(By.CSS_SELECTOR, "#D6F73C26-7627-4948-95EA-2C630C25C5E9_scheduleOpenings_OpeningsData.p:nth-child(1)")
+    # element = driver.find_element(By.CSS_SELECTOR, ".openingsData.openingsNoData")
+    element = driver.find_element(By.CSS_SELECTOR, "#D6F73C26-7627-4948-95EA-2C630C25C5E9_scheduleOpenings_datePickerContainer")
+    print(element.text)
+    # print(driver.page_source)
 
 def check_request(*args):
     response = requests.get(URL)
@@ -234,6 +263,10 @@ if __name__ == "__main__":
         elif args.fpg:
             check_func = check_fpg
             site = site_fpg
+            driver = get_driver(head=args.head)
+        elif args.book:
+            check_func = check_cvs_book
+            site = site_cvs_book
             driver = get_driver(head=args.head)
         elif bool(args.city) or bool(args.state):
             print("Checking cities: {}, state: {}".format(args.city, args.state))
