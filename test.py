@@ -88,10 +88,9 @@ def test_bmc(driver):
 if __name__ == "__main__":
     driver = None
     try:
-        driver = get_driver(head=True)
+        driver = get_driver(head=False)
         # test_cvs()
-        # test_bmc(driver)
-        test_cvs_book(driver)
+        test_bmc(driver)
     except Exception as e:
         print(e)
         if driver:

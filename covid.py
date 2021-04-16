@@ -195,15 +195,25 @@ def check_bmc(driver):
     driver.find_element(By.CSS_SELECTOR, ".answer-label:nth-child(2)").click()
     driver.find_element(By.LINK_TEXT, "Next Question").click()
     driver.find_element(By.CSS_SELECTOR, ".location-card-content > div").click()
-    time.sleep(5)
+    time.sleep(1)
+    driver.switch_to.frame(0)
+    try:
+        date = driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > .card:nth-child(1) > .header").text
+    except NoSuchElementException as e:
+        return False
+    loc = driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > .card:nth-child(1) .providername").text
+    site = loc.split()[0]
+    dt = datetime.datetime.strptime(date, "%A %B %d, %Y")
+    earlier = datetime.datetime(2021, 4, 28)
+    outcome = (site != "Mattapan") or (dt < earlier)
+    print(outcome)
+    return outcome
     # element = driver.find_element(By.ID, "main")
     # element = driver.find_element(By.CLASS_NAME, "errormessage")
     # element = driver.find_element(By.TAG_NAME, "body")
     # element = driver.find_element(By.CSS_SELECTOR, "#D6F73C26-7627-4948-95EA-2C630C25C5E9_scheduleOpenings_OpeningsData.p:nth-child(1)")
     # element = driver.find_element(By.CSS_SELECTOR, ".openingsData.openingsNoData")
-    element = driver.find_element(By.CSS_SELECTOR, "#D6F73C26-7627-4948-95EA-2C630C25C5E9_scheduleOpenings_datePickerContainer")
-    print(element.text)
-    # print(driver.page_source)
+    # element = driver.find_element(By.CSS_SELECTOR, "#D6F73C26-7627-4948-95EA-2C630C25C5E9_scheduleOpenings_datePickerContainer")
 
 def check_request(*args):
     response = requests.get(URL)
