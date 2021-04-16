@@ -26,6 +26,7 @@ parser.add_argument('--heb', action='store_true')
 parser.add_argument('--kinney', action='store_true')
 parser.add_argument('--nys', action='store_true')
 parser.add_argument('--fpg', action='store_true')
+parser.add_argument('--bmc', action='store_true')
 parser.add_argument('--book', action='store_true')
 parser.add_argument('--walg', type=str)
 parser.add_argument('--city', nargs='+')
@@ -200,13 +201,12 @@ def check_bmc(driver):
     try:
         date = driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > .card:nth-child(1) > .header").text
     except NoSuchElementException as e:
-        return False
+        return True
     loc = driver.find_element(By.CSS_SELECTOR, "div:nth-child(1) > .card:nth-child(1) .providername").text
     site = loc.split()[0]
     dt = datetime.datetime.strptime(date, "%A %B %d, %Y")
     earlier = datetime.datetime(2021, 4, 28)
-    outcome = (site != "Mattapan") or (dt < earlier)
-    print(outcome)
+    outcome = (site == "Mattapan") and (dt >= earlier)
     return outcome
     # element = driver.find_element(By.ID, "main")
     # element = driver.find_element(By.CLASS_NAME, "errormessage")
@@ -273,6 +273,10 @@ if __name__ == "__main__":
         elif args.fpg:
             check_func = check_fpg
             site = site_fpg
+            driver = get_driver(head=args.head)
+        elif args.bmc:
+            check_func = check_bmc
+            site = site_bmc
             driver = get_driver(head=args.head)
         elif args.book:
             check_func = check_cvs_book
