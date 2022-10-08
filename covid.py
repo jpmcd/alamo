@@ -33,6 +33,9 @@ parser.add_argument('--city', nargs='+')
 parser.add_argument('--state')
 parser.add_argument('--rec')
 
+parser.add_argument('--gt', action='store_true')
+
+
 URL = 'https://emrinventory.cdpehs.com/ezEMRxPHR/DOMECOVID_genRegQuest.htm'
 URL2 = 'https://emrinventory.cdpehs.com/ezEMRxPHR/DOMECOVID_F_genRegQuest.htm'
 site_alamo = "https://emrinventory.cdpehs.com/ezEMRxPHR/html/login/newPortalReg.jsp"
@@ -48,6 +51,8 @@ site_walg = "https://www.walgreens.com/findcare/vaccination/covid-19?ban=covid_v
 site_fpg = "https://bookfpg.timetap.com/"
 site_bmc = "https://mychartscheduling.bmc.org/MyChartscheduling/covid19#/triage"
 
+site_gt = "https://resy.com/cities/ny/gage-and-tollner?date=2021-12-31&seats=2"
+
 def void(*args):
     pass
 
@@ -62,12 +67,14 @@ def get_driver(head=False):
         driver = webdriver.Firefox(options=options)
         # driver = webdriver.Firefox()
     else:
-        options = Options()
+        # options = Options()
+        options = firefox_options()
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument("--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36")
-        driver = webdriver.Chrome(options=options)
+        driver = webdriver.Firefox(options=options)
+        # driver = webdriver.Chrome(options=options)
     return driver
 
 def get_cvs_data(state='MA'):
@@ -243,6 +250,17 @@ def check_nys(driver):
 def check_heb(driver):
     page = "https://vaccine.heb.com/"
 
+def check_gt(driver):
+    print("Checking, {}...".format(datetime.datetime.now()))
+    driver.get(site_gt)
+    time.sleep(5)
+    text = "Sorry, we don't currently have any tables available for 2."
+    # print(driver.page_source)
+    element = driver.find_element(By.TAG_NAME, "body")
+    outcome = text in element.text
+    print("Finished check, {}...".format(datetime.datetime.now()))
+    return outcome
+
 if __name__ == "__main__":
     driver = None
     message = None
@@ -282,6 +300,10 @@ if __name__ == "__main__":
             check_func = check_cvs_book
             site = site_cvs_book
             driver = get_driver(head=args.head)
+        elif args.gt:
+            check_func = check_gt
+            site = site_gt
+            driver = get_driver(head=args.head)
         elif bool(args.city) or bool(args.state):
             print("Checking cities: {}, state: {}".format(args.city, args.state))
             if bool(args.city) != bool(args.state):
@@ -304,7 +326,7 @@ if __name__ == "__main__":
                     # if driver:
                     #     print(driver.page_source)
                 break
-                time.sleep(300)
+                # time.sleep(300)
             else:
                 time.sleep(args.wait + uniform(0, 5))
     except KeyboardInterrupt:

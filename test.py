@@ -8,7 +8,7 @@ from selenium.webdriver.common.by import By
 # from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.chrome.options import Options
 from selenium.common.exceptions import NoSuchElementException
-from covid import check_uth, check_cvs, check_cvs_book, check_walg, check_fpg, check_bmc
+from covid import check_uth, check_cvs, check_cvs_book, check_walg, check_fpg, check_bmc, check_gt
 from covid import get_driver
 
 
@@ -84,12 +84,16 @@ def test_fpg(driver):
 def test_bmc(driver):
     check_bmc(driver)
 
+def test_gt(driver):
+    check_gt(driver)
+
 if __name__ == "__main__":
     driver = None
     try:
         driver = get_driver(head=False)
         # test_cvs()
-        test_bmc(driver)
+        # test_bmc(driver)
+        test_gt(driver)
     except Exception as e:
         print(e)
         if driver:
